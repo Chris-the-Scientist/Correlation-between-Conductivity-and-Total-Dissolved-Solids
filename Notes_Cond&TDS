@@ -1,0 +1,31 @@
+# Correlation, linear regression model, and statistical significance between the Conductivity and TDS of clean drinking water
+
+For this practice project, I imported a data set that I had found on Kaggle called "water_potability.csv" in order to find a correlation between two variables within the data set.
+
+I started by prompting a summary, and the head of the data up to 5 columns. This is good practice to see what variables there are to work with and how complete the data is.
+
+I followed this by checking the data type using str('data').
+
+Following the viewing of the summary, I created a sample size of the population for the columns that I was interested in viewing from the data.
+I set the seed to 1 so that my answers are reproducible, and selected a random sample of 50.
+
+Next, I started obtaining some descriptive statistical data on both the conductivity and the total dissolved solids.
+This consisted of the mean, median, variance, standard deviation, sum of squares, range, minimum, and maximum values.
+
+Once my descriptive statistics are calculated, I plotted the data to view the linearity and whether or not the distribution of the sample set is normally distributed.
+
+Upon my plotting I had viewed that both sets of data I had collected showed right skewed distributions, with the conductivity indicating a dip in the peak.
+This dip in the peak indicates bimodal or multimodal distribution. This could indicate non homogeneity.
+
+I moved on from this to see if I could find any statistical significance when looking at the correlation, and coefficient of Determination.
+My correlation indicated that it was weak positive correlation between the two variables.
+My coefficient of determination indicated a weak goodness of fit test.
+
+After obtaining my confidence interval boundaries I had determined a few things about my data:
+1. The correlation is clustered points, positive value, weak, and non linear.
+2. That my population slope is captured within the confidence interval.
+3. That my p-value is very close to zero indicating that we can reject a null hypothesis and state there is statistical significance between the predictor and response variables.
+4. Correlation isn't by random chance alone.
+
+Although my statistical tests and linear model didn't show exactly what I had hoped for, I do feel I have found some important and statistical analysis from the data set.
+I would like to do a more in depth analysis following this project to see if I can narrow the sample populations down to categories first (local, regional, and national) to see if I can find a tigher grouping of points instead of a cluster to see if there is a better relationship between these to variables.
