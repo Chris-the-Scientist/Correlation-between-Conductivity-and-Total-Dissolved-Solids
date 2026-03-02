@@ -1,0 +1,337 @@
+---
+title: Correlation, linear regression, and Statistical Significance between Conductivity
+  and Total Dissolved Solids
+Name: Christian Shaffer
+output: pdf_document
+  pdf_document: default
+  html_notebook: default
+---
+
+```{r}
+# Import the CSV
+water_stats <- read.csv("water_potability.csv")
+
+# Summary of CSV imported
+summary(water_stats)
+
+# First 5 rows of CSV
+head(water_stats, 5)
+
+# Check data type
+str(water_stats)
+```
+
+## Create sample size of population.
+
+```{r}
+# For reproducibility
+set.seed(1)
+
+# Randomly select 50 numbers to represent rows in dataframe
+sampleIDs <- sample(1:3276, size = 50, replace = FALSE)
+
+# Select the columns I'm interested in
+myColumns <- c("Conductivity", "Solids")
+
+# Store the randomly selected rows on the given columns
+sample_water <- water_stats[sampleIDs, myColumns]
+sample_water
+```
+
+## Descriptive Statistics of Conductivity within Dataset.
+
+```{r}
+# Statistical Model for calculating base statistical stats from Data Frame, specifically Turbidity and Solids
+
+# Calculate the mean, median, variance, and standard deviation:
+
+mu_con <- mean(water_stats$Conductivity, na.rm = T) # calculates the population mean, using mu
+
+median_con <- median(water_stats$Conductivity, na.rm = T) # calculates the median, using na.rm to remove NA's
+
+diff_con <- water_stats$Conductivity - mu_con # deviance between data frame and mean (X - xbar)
+
+Sqr <- diff_con^2 # squared of the deviance (X - xbar)^2
+
+SOS <- sum(Sqr) # Sum of squares using square of the deviance
+
+var_con <- var(water_stats$Conductivity) # calculates the variance
+
+myvar_con <- SOS / length(water_stats$Conductivity) # calculates the variance from difference between SOS and number of scores(data points)
+
+sd_con <- sd(water_stats$Conductivity) # calculates sample the standard deviation
+ 
+mu_con <- sqrt(myvar_con) # calculates the population standard deviation given by sigma
+
+# The range calculated two ways:
+
+range_con <- diff(range(water_stats$Conductivity)) # calculates the range with the diff function
+  
+min_con <- min(water_stats$Conductivity) # minimum value
+
+max_con <- max(water_stats$Conductivity) # maximum value
+
+# range_turb <- max_turb - min_turb # range of data frame using min and max functions
+
+```
+
+## Descriptive Statistics of Solids within Dataset.
+
+```{r}
+# Statistical Model for calculating base statistical stats from Data Frame, specifically Conductivity and Solids
+
+# Calculate the mean, median, variance, and standard deviation:
+
+mu_solids <- mean(water_stats$Solids, na.rm = T) # calculates the population mean, using mu
+
+median_solids <- median(water_stats$Solids, na.rm = T) # calculates the median, using na.rm to remove NA's
+
+diff_solids <- water_stats$Solids - mu_solids # deviance between data frame and mean (X - xbar)
+
+Sqr_solids <- diff_solids^2 # squared of the deviance (X - xbar)^2
+
+SOS_solids <- sum(Sqr_solids) # Sum of squares using square of the deviance
+
+var_solids <- var(water_stats$Solids) # calculates the variance
+
+myvar_solids <- SOS_solids / length(water_stats$Solids) # calculates the variance from difference between SOS and number of scores(data points)
+
+sd_solids <- sd(water_stats$Solids) # calculates sample the standard deviation
+ 
+mu_solids <- sqrt(myvar_solids) # calculates the population standard deviation given by sigma
+
+# The range calculated two ways:
+
+range_solids <- diff(range(water_stats$Solids)) # calculates the range with the diff function
+  
+min_solids <- min(water_stats$Solids) # minimum value
+
+max_solids <- max(water_stats$Solids) # maximum value
+
+# range_turb <- max_turb - min_turb # range of data frame using min and max functions
+
+```
+
+## Plot the data to view linearity of the sample size.
+
+```{r}
+# Plot data to view linearity and whether data is normally distributed or not of sample set. 
+plot(density(sample_water$Conductivity)) # Slightly bimodal peaks, indicative of underlying patterns. 
+qqnorm(sample_water$Conductivity)
+
+plot(density(sample_water$Solids)) # right skewness, normally distributed.
+qqnorm(sample_water$Solids)
+
+# Calculate Correlation matrix:
+water_cor_sample <- round(cor(sample_water$Conductivity, sample_water$Solids, "complete.obs"), 4)
+water_cor_sample # weak positive correlation between Conductivity and Solids
+
+# Coefficient of Determination
+water_cor_sample^2
+
+# t critical value
+tcrit <- qt(p = 0.975, df = 50-2)
+tcrit
+
+# Lower bound
+#lb_sample <- 1.501 - tcrit*1.896
+#lb_sample
+
+# Upper bound
+#ub_sample <- 1.501 + tcrit*1.896
+#ub_sample
+
+
+```
+
+## Calculate the correlation and coefficient of determination value, then find the confidence interval boundaries of the sample size.
+
+```{r}
+# Calculate Correlation matrix:
+water_cor_sample <- round(cor(sample_water$Conductivity, sample_water$Solids, "complete.obs"), 4)
+water_cor_sample # weak positive correlation between Conductivity and Solids
+
+# Coefficient of Determination
+water_cor_sample^2
+
+# t critical value
+tcrit <- qt(p = 0.975, df = 50-2)
+tcrit
+
+# Lower bound
+#lb_sample <- 1.501 - tcrit*1.896
+#lb_sample
+
+# Upper bound
+#ub_sample <- 1.501 + tcrit*1.896
+#ub_sample
+```
+
+## Create a linear regression model of the sample size with a least squares regression line and indications of slope and y intercept.
+
+```{r}
+# Create Linear Regression Model
+Sample_Model <- lm(Solids ~ Conductivity, data = water_stats)
+#Sample_Model$residuals
+Sample_Model
+
+# Store the coefficients on the linear model
+my_intercept_sample <- round(Sample_Model$coefficients[1], 1)
+my_slope_sample <- round(Sample_Model$coefficients[2], 1)
+
+# Plot correlation.
+plot(sample_water$Conductivity,
+     sample_water$Solids,
+     cex = 0.5, # make points smaller
+     pch = 16, # make solid dots
+     main = paste("LSRL: ", "Predicted y = ", my_intercept_sample, "+", my_slope_sample, "(x)"),
+     xlab = "Conductivity of Water Bodies", 
+     ylab = "Total Dissolved Solids")
+
+# Plot LSRL
+abline(Sample_Model, 
+       lwd = 2,        # make the line wider
+       col = "orange"     # color the line
+       )
+
+summary(Sample_Model)
+```
+
+## Is there a statistically significant correlation to access of safe drinking water between Conductivity and TDS (ppm) across local, regional, and national levels?
+
+-   The $r^2$ value indicates a weak goodness of fit between the explanatory and response variables.
+
+-   This could be due to ommited variables causing variance, high variability, or a high level of measurement error within the data.
+
+-   The correlation itself indicates a weak positive correlation, and shows no linearity.
+
+-   The LSRL indicates almost a completely horizontal slope. This shows a uniform rate and lack of change over time.
+
+```{r}
+# Plot data to view linearity and whether data is normally distributed or not. 
+plot(density(water_stats$Conductivity)) # Slightly bimodal peaks, indicative of underlying patterns. 
+qqnorm(water_stats$Conductivity)
+
+plot(density(water_stats$Solids)) # right skewness, normally distributed.
+qqnorm(water_stats$Solids)
+
+# Calculate Correlation matrix:
+water_cor <- round(cor(water_stats$Conductivity, water_stats$Solids, "complete.obs"), 4)
+water_cor # weak positive correlation between Conductivity and Solids
+
+# Coefficient of Determination
+water_cor^2
+
+# t critical value
+tcrit <- qt(p = 0.975, df = 3276-2)
+tcrit
+
+# Lower bound
+lb <- 1.501 - tcrit*1.896
+lb
+
+# Upper bound
+ub <- 1.501 + tcrit*1.896
+ub
+
+# Create Linear Regression Model
+Model <- lm(Solids ~ Conductivity, data = water_stats)
+Model$residuals
+Model
+
+# Store the coefficients on the linear model
+my_intercept <- round(Model$coefficients[1], 1)
+my_slope <- round(Model$coefficients[2], 1)
+
+# Plot correlation.
+plot(water_stats$Conductivity,
+     water_stats$Solids,
+     cex = 0.5, # make points smaller
+     pch = 16, # make solid dots
+     main = paste("LSRL: ", "Predicted y = ", my_intercept, "+", my_slope, "(x)"),
+     xlab = "Conductivity of Water Bodies", 
+     ylab = "Total Dissolved Solids")
+
+# Plot LSRL
+abline(Model, 
+       lwd = 2,        # make the line wider
+       col = "red"     # color the line
+       )
+
+summary(Model)
+```
+
+-   Correlation is clustered points, positive value, weak. The population correlation is 0.0138, and the sample correlation is 0.0454. Both indicate positive, weak, and non linear.
+
+-   Confidence interval boundaries (-2.216466, 5.218466)
+
+-   p-value is very close to zero, hence smaller then $\alpha$ = 0.05, so we can reject the null hypothesis and state that there is statistical significance between the predictor and response variable, and that this correlation isn't by random chance alone.
+
+-   We are 95% confident that the interval (-2.216, 5.218) captures the population slope of Total Dissolved Solids for Conductivity within local, regional, and national bodies of clean drinking water.
+
+-   The population slope was 1.501, so yes, our interval captured the parameter.
+
+## To what extent does total dissolved solids (TDS in ppm) concentrations statistically predict or correlate with conductivity levels across a random sample of water bodies (50 out of 3276)? (Does one predict the other?)
+
+```{r}
+# Set seed to 22.
+#set.seed(22)
+
+# Pick 4 different random samples
+sampleIDs1 <- sample(1:3276, size = 50, replace = FALSE)
+sampleIDs2 <- sample(1:3276, size = 50, replace = FALSE)
+sampleIDs3 <- sample(1:3276, size = 50, replace = FALSE)
+sampleIDs4 <- sample(1:3276, size = 50, replace = FALSE)
+
+# Select the columns I'm interested in
+myColumns <- c("Conductivity", "Solids")
+
+#("pH", "Hardness", "Solids", "Chloramines", "Sulfate", "Conductivity", "Organic_carbon", "Trihalomethanes", "Turbidity", "Potability")
+
+# Store the randomly selected rows on the given columns
+sampleWater1 <- water_stats[sampleIDs1, myColumns]
+sampleWater2 <- water_stats[sampleIDs2, myColumns]
+sampleWater3 <- water_stats[sampleIDs3, myColumns]
+sampleWater4 <- water_stats[sampleIDs4, myColumns]
+
+# Calculate linear model for each sample
+mod1 <- lm(water_stats$Solids~water_stats$Conductivity)
+mod2 <- lm(water_stats$Solids~water_stats$Conductivity)
+mod3 <- lm(water_stats$Solids~water_stats$Conductivity)
+mod4 <- lm(water_stats$Solids~water_stats$Conductivity)
+
+# Store the slope from each model
+mod1slope <- round(mod1$coefficients[2], 1)
+mod2slope <- round(mod2$coefficients[2], 1)
+mod3slope <- round(mod3$coefficients[2], 1)
+mod4slope <- round(mod4$coefficients[2], 1)
+
+# Store r-squared for each model
+mod1corr <- round(sqrt(summary(mod1)$r.squared), 2)
+mod2corr <- round(sqrt(summary(mod2)$r.squared), 2)
+mod3corr <- round(sqrt(summary(mod3)$r.squared), 2)
+mod4corr <- round(sqrt(summary(mod4)$r.squared), 2)
+
+# 2x2 viewing window
+par(mfrow = c(2, 2))
+
+# Plot 4 scatterplots with LSRL to illustrate sampling variability
+
+plot(sampleWater1$Conductivity, sampleWater1$Solids, cex = 1.5, las = 1, pch = 16,  xlab = "Conductivity",  ylab = "TDS", main = paste("b =", mod1slope, "and r =", mod1corr))
+
+abline(mod1, col = "red", lwd = 1.5)
+
+plot(sampleWater2$Conductivity, sampleWater2$Solids, cex = 1.5, las = 1, pch = 16,  xlab = "Conductivity",  ylab = "TDS", main = paste("b =", mod2slope, "and r =", mod2corr))
+
+abline(mod2, col = "red", lwd = 1.5)
+
+plot(sampleWater3$Conductivity, sampleWater3$Solids, cex = 1.5, las = 1, pch = 16,  xlab = "Conductivity",  ylab = "TDS", main = paste("b =", mod3slope, "and r =", mod3corr))
+
+abline(mod3, col = "red", lwd = 1.5)
+
+plot(sampleWater4$Conductivity, sampleWater4$Solids, cex = 1.5, las = 1, pch = 16,  xlab = "Conductivity",  ylab = "TDS", main = paste("b =", mod4slope, "and r =", mod4corr))
+
+abline(mod4, col = "red", lwd = 1.5)
+
+# Note to self: making a function would have been wise here!
+```
